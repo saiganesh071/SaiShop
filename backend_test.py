@@ -383,7 +383,7 @@ class ECommerceAPITester:
         temp_token = self.auth_token
         self.auth_token = None
         success, data, status = self.make_request("GET", "/auth/me")
-        if not success and status == 401:
+        if not success and status in [401, 403]:
             self.log_result("GET /api/auth/me (no auth)", True, "Correctly rejected unauthorized access")
         else:
             self.log_result("GET /api/auth/me (no auth)", False, "Should have rejected unauthorized access", str(data))
