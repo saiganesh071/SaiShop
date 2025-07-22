@@ -612,7 +612,9 @@ async def stripe_webhook(request: Request):
         raise HTTPException(status_code=400, detail=str(e))
 
 @api_router.get("/orders")
-async def get_orders(current_user: Optional[User] = Depends(get_current_user), session_id: Optional[str] = None):
+async def get_orders(session_id: Optional[str] = None, authorization: Optional[str] = Header(None)):
+    current_user = await get_current_user_optional(authorization)
+    
     query = {}
     if current_user:
         query["user_id"] = current_user.id
@@ -622,7 +624,7 @@ async def get_orders(current_user: Optional[User] = Depends(get_current_user), s
         raise HTTPException(status_code=401, detail="Authentication or session_id required")
     
     orders = await db.orders.find(query).sort("created_at", -1).to_list(50)
-    return [Order(**order) for order in orders]
+    return [clean_mongo_doc(order) for order in orders]
 
 @api_router.post("/products/{product_id}/reviews")
 async def add_review(product_id: str, rating: int, comment: str, session_id: str, current_user: Optional[User] = Depends(get_current_user)):
