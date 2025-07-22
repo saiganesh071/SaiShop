@@ -122,6 +122,21 @@ def hash_password(password: str) -> str:
 def verify_password(password: str, hashed_password: str) -> bool:
     return bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8'))
 
+def clean_mongo_doc(doc):
+    """Remove MongoDB ObjectId and other non-serializable fields"""
+    if doc is None:
+        return None
+    if isinstance(doc, list):
+        return [clean_mongo_doc(item) for item in doc]
+    if isinstance(doc, dict):
+        cleaned = {}
+        for key, value in doc.items():
+            if key == '_id':
+                continue  # Skip MongoDB ObjectId
+            cleaned[key] = clean_mongo_doc(value)
+        return cleaned
+    return doc
+
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
     if expires_delta:
