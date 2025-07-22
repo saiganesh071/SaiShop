@@ -403,8 +403,8 @@ async def get_cart(session_id: str):
             item_total = product["price"] * item["quantity"]
             total_amount += item_total
             cart_with_products.append({
-                **item,
-                "product": product,
+                **clean_mongo_doc(item),
+                "product": clean_mongo_doc(product),
                 "item_total": item_total
             })
     
