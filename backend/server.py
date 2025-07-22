@@ -160,6 +160,24 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     except jwt.PyJWTError:
         return None
 
+async def get_current_user_optional(authorization: Optional[str] = None) -> Optional[User]:
+    """Optional authentication - returns None if no auth provided"""
+    if not authorization or not authorization.startswith("Bearer "):
+        return None
+    
+    try:
+        token = authorization.split(" ")[1]
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: str = payload.get("sub")
+        if user_id is None:
+            return None
+        user_doc = await db.users.find_one({"id": user_id})
+        if user_doc:
+            return User(**user_doc)
+        return None
+    except jwt.PyJWTError:
+        return None
+
 # Initialize sample products
 async def init_sample_data():
     # Check if products already exist
